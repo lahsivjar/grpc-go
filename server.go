@@ -1311,7 +1311,9 @@ func (s *Server) handleStream(t transport.ServerTransport, stream *transport.Str
 	srv, knownService := s.m[service]
 	if knownService {
 		if md, ok := srv.md[method]; ok {
-			s.processUnaryRPC(t, stream, srv, md, trInfo)
+			grpclog.Infof("Found known service debug_grpc_max_message_size %s - %T", md.MethodName, md.Handler)
+			err := s.processUnaryRPC(t, stream, srv, md, trInfo)
+			grpclog.Infof("debug_grpc_max_message_size Unary rpc failed with error: %v", err)
 			return
 		}
 		if sd, ok := srv.sd[method]; ok {
