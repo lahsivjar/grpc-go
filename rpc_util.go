@@ -669,7 +669,7 @@ func recvAndDecompress(p *parser, s *transport.Stream, dc Decompressor, maxRecei
 	if size > maxReceiveMessageSize {
 		// TODO: Revisit the error code. Currently keep it consistent with java
 		// implementation.
-		log.Printf("recvAndDecompress: debug_grpc_max_message_size, configured_size: %d, received_size: %d", maxReceiveMessageSize, int(length))
+		log.Printf("recvAndDecompress: debug_grpc_max_message_size, configured_size: %d, received_size: %d", maxReceiveMessageSize, size)
 		return nil, status.Errorf(codes.ResourceExhausted, "grpc: received message larger than max (%d vs. %d)", size, maxReceiveMessageSize)
 	}
 	return d, nil
