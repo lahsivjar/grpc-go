@@ -391,6 +391,7 @@ func HeaderTableSize(s uint32) ServerOption {
 // NewServer creates a gRPC server which has no service registered and has not
 // started to accept requests yet.
 func NewServer(opt ...ServerOption) *Server {
+	grpclog.Infoln("debug_grpc_max_message_size")
 	opts := defaultServerOptions
 	for _, o := range opt {
 		o.apply(&opts)
