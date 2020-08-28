@@ -963,6 +963,7 @@ func (s *Server) processUnaryRPC(t transport.ServerTransport, stream *transport.
 		if decomp == nil {
 			st := status.Newf(codes.Unimplemented, "grpc: Decompressor is not installed for grpc-encoding %q", rc)
 			t.WriteStatus(stream, st)
+			grpclog.Infof("debug_grpc_max_message_size Unary rpc failure 1: %v", st.Err())
 			return st.Err()
 		}
 	}
@@ -993,6 +994,7 @@ func (s *Server) processUnaryRPC(t transport.ServerTransport, stream *transport.
 				grpclog.Warningf("grpc: Server.processUnaryRPC failed to write status %v", e)
 			}
 		}
+		grpclog.Infof("debug_grpc_max_message_size Unary rpc failure 2: %v", err)
 		return err
 	}
 	if channelz.IsOn() {
@@ -1000,6 +1002,7 @@ func (s *Server) processUnaryRPC(t transport.ServerTransport, stream *transport.
 	}
 	df := func(v interface{}) error {
 		if err := s.getCodec(stream.ContentSubtype()).Unmarshal(d, v); err != nil {
+			grpclog.Infof("debug_grpc_max_message_size Unary rpc failure 3: unmarshalling")
 			return status.Errorf(codes.Internal, "grpc: error unmarshalling request: %v", err)
 		}
 		if sh != nil {
@@ -1050,6 +1053,7 @@ func (s *Server) processUnaryRPC(t transport.ServerTransport, stream *transport.
 				Err:     appErr,
 			})
 		}
+		grpclog.Infof("debug_grpc_max_message_size Unary rpc failure 4: %v", appErr)
 		return appErr
 	}
 	if trInfo != nil {
@@ -1060,6 +1064,7 @@ func (s *Server) processUnaryRPC(t transport.ServerTransport, stream *transport.
 	if err := s.sendResponse(t, stream, reply, cp, opts, comp); err != nil {
 		if err == io.EOF {
 			// The entire stream is done (for unary RPC only).
+			grpclog.Infof("debug_grpc_max_message_size Unary rpc failure 5: %v", err)
 			return err
 		}
 		if s, ok := status.FromError(err); ok {
@@ -1084,6 +1089,7 @@ func (s *Server) processUnaryRPC(t transport.ServerTransport, stream *transport.
 				Err:     appErr,
 			})
 		}
+		grpclog.Infof("debug_grpc_max_message_size Unary rpc failure 6: %v", err)
 		return err
 	}
 	if binlog != nil {
@@ -1111,6 +1117,7 @@ func (s *Server) processUnaryRPC(t transport.ServerTransport, stream *transport.
 			Err:     appErr,
 		})
 	}
+	grpclog.Infof("debug_grpc_max_message_size Unary rpc failure 7: %v", err)
 	return err
 }
 
@@ -1311,7 +1318,9 @@ func (s *Server) handleStream(t transport.ServerTransport, stream *transport.Str
 	srv, knownService := s.m[service]
 	if knownService {
 		if md, ok := srv.md[method]; ok {
-			s.processUnaryRPC(t, stream, srv, md, trInfo)
+			grpclog.Infof("Found known service debug_grpc_max_message_size %s - %T", md.MethodName, md.Handler)
+			err := s.processUnaryRPC(t, stream, srv, md, trInfo)
+			grpclog.Infof("debug_grpc_max_message_size Unary rpc failed with error: %v", err)
 			return
 		}
 		if sd, ok := srv.sd[method]; ok {
